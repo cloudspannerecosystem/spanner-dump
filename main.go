@@ -20,9 +20,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jessevdk/go-flags"
 	"os"
 	"time"
+
+	"github.com/jessevdk/go-flags"
 )
 
 type options struct {
@@ -36,7 +37,8 @@ type options struct {
 
 func main() {
 	var opts options
-	if _, err := flags.Parse(&opts); err != nil {
+	tables, err := flags.Parse(&opts)
+	if err != nil {
 		exitf("Invalid options\n")
 	}
 
@@ -54,7 +56,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	dumper, err := NewDumper(ctx, opts.ProjectId, opts.InstanceId, opts.DatabaseId, os.Stdout, timestamp, opts.BulkSize)
+	dumper, err := NewDumper(ctx, opts.ProjectId, opts.InstanceId, opts.DatabaseId, os.Stdout, timestamp, opts.BulkSize, tables)
 	if err != nil {
 		exitf("Failed to create dumper: %v\n", err)
 	}

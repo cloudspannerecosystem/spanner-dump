@@ -21,25 +21,25 @@ import (
 )
 
 func TestQuotedColumnList(t *testing.T) {
-	for _, tt := range []struct{
-		desc string
+	for _, tt := range []struct {
+		desc  string
 		table *Table
-		want string
+		want  string
 	}{
 		{
-			desc: "No columns",
+			desc:  "No columns",
 			table: &Table{Columns: []string{}},
-			want: "",
+			want:  "",
 		},
 		{
-			desc: "Single column",
+			desc:  "Single column",
 			table: &Table{Columns: []string{"C1"}},
-			want: "`C1`",
+			want:  "`C1`",
 		},
 		{
-			desc: "Multiple columns",
+			desc:  "Multiple columns",
 			table: &Table{Columns: []string{"C1", "C2"}},
-			want: "`C1`, `C2`",
+			want:  "`C1`, `C2`",
 		},
 	} {
 		t.Run(tt.desc, func(t *testing.T) {
@@ -71,29 +71,29 @@ func TestFindChildTables(t *testing.T) {
 	t3 := &Table{Name: "T3", Columns: []string{"T3_C1", "T3_C2"}, ChildTables: []*Table{t4}}
 	t1 := &Table{Name: "T1", Columns: []string{"T1_C1", "T1_C2"}, ChildTables: []*Table{t2, t3}}
 
-	for _, tt := range []struct{
-		desc string
-		rows []tableRow
+	for _, tt := range []struct {
+		desc   string
+		rows   []tableRow
 		parent string
-		want []*Table
+		want   []*Table
 	}{
 		{
-			desc: "No rows",
-			rows: []tableRow{},
+			desc:   "No rows",
+			rows:   []tableRow{},
 			parent: "",
-			want: []*Table{},
+			want:   []*Table{},
 		},
 		{
-			desc: "Middle tree",
-			rows: []tableRow{tr2, tr3, tr4},
+			desc:   "Middle tree",
+			rows:   []tableRow{tr2, tr3, tr4},
 			parent: "T1",
-			want: []*Table{t2, t3},
+			want:   []*Table{t2, t3},
 		},
 		{
-			desc: "Full tree",
-			rows: []tableRow{tr1, tr2, tr3, tr4, tr5},
+			desc:   "Full tree",
+			rows:   []tableRow{tr1, tr2, tr3, tr4, tr5},
 			parent: "",
-			want: []*Table{t1, t5},
+			want:   []*Table{t1, t5},
 		},
 	} {
 		t.Run(tt.desc, func(t *testing.T) {

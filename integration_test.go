@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -29,6 +28,7 @@ import (
 
 	"cloud.google.com/go/spanner"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc"
 
 	adminapi "cloud.google.com/go/spanner/admin/database/apiv1"
 	adminpb "google.golang.org/genproto/googleapis/spanner/admin/database/v1"
@@ -86,7 +86,7 @@ func setup(t *testing.T, ctx context.Context, ddls, dmls []string) (string, func
 	}
 
 	op, err := adminClient.CreateDatabase(ctx, &adminpb.CreateDatabaseRequest{
-		Parent: fmt.Sprintf("projects/%s/instances/%s", testProjectId, testInstanceId),
+		Parent:          fmt.Sprintf("projects/%s/instances/%s", testProjectId, testInstanceId),
 		CreateStatement: fmt.Sprintf("CREATE DATABASE `%s`", databaseId),
 		ExtraStatements: ddls,
 	})
@@ -120,7 +120,7 @@ func setup(t *testing.T, ctx context.Context, ddls, dmls []string) (string, func
 
 	tearDown := func() {
 		if err = adminClient.DropDatabase(ctx, &adminpb.DropDatabaseRequest{
-			Database:   db.Name,
+			Database: db.Name,
 		}); err != nil {
 			t.Fatalf("failed to drop database: %v", err)
 		}
@@ -139,7 +139,7 @@ func TestDump(t *testing.T) {
 
 	// NOTE: Spanner doesn't allow to use trailer ";" in DDL.
 	ddls := []string{
-`CREATE TABLE t1 (
+		`CREATE TABLE t1 (
   Id INT64 NOT NULL,
   StrCol STRING(16),
   BoolCol BOOL,
@@ -149,17 +149,17 @@ func TestDump(t *testing.T) {
   ArrayCol ARRAY<INT64>,
 ) PRIMARY KEY(Id)`,
 
-`CREATE TABLE t2 (
+		`CREATE TABLE t2 (
   T2Id INT64 NOT NULL,
 ) PRIMARY KEY(T2Id)`,
 
-`CREATE TABLE t3 (
+		`CREATE TABLE t3 (
   T2Id INT64 NOT NULL,
   T3Id INT64 NOT NULL,
 ) PRIMARY KEY(T2Id, T3Id),
   INTERLEAVE IN PARENT t2 ON DELETE CASCADE`,
 
-`CREATE TABLE t4 (
+		`CREATE TABLE t4 (
   T2Id INT64 NOT NULL,
   T3Id INT64 NOT NULL,
   T4Id INT64 NOT NULL,
@@ -184,7 +184,7 @@ func TestDump(t *testing.T) {
 	defer tearDown()
 
 	out := &bytes.Buffer{}
-	dumper, err := NewDumper(ctx, testProjectId, testInstanceId, databaseId, out, nil, 1)
+	dumper, err := NewDumper(ctx, testProjectId, testInstanceId, databaseId, out, nil, 1, nil)
 	if err != nil {
 		t.Fatalf("failed to create dumper: %v", err)
 	}
