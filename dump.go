@@ -97,7 +97,7 @@ func NewDumper(ctx context.Context, project, instance, database string, out io.W
 	}
 
 	for _, table := range tables {
-		d.tables[table] = true
+		d.tables[strings.Trim(table, "`")] = true
 	}
 	return d, nil
 }
@@ -119,7 +119,7 @@ func (d *Dumper) DumpDDLs(ctx context.Context) error {
 	}
 
 	for _, ddl := range resp.Statements {
-		if len(d.tables) > 0 && !d.tables[parsesTableName(ddl)] {
+		if len(d.tables) > 0 && !d.tables[parseTableNameFromDDL(ddl)] {
 			continue
 		}
 		fmt.Fprintf(d.out, "%s;\n", ddl)
@@ -128,21 +128,21 @@ func (d *Dumper) DumpDDLs(ctx context.Context) error {
 	return nil
 }
 
-func parsesTableName(statement string) string {
-	statement = strings.ReplaceAll(statement, "\n", "")
-	if indexRegexp.MatchString(statement) {
-		match := indexRegexp.FindStringSubmatch(statement)
-		return match[3]
+func parseTableNameFromDDL(ddl string) string {
+	ddl = strings.ReplaceAll(ddl, "\n", "")
+	if indexRegexp.MatchString(ddl) {
+		match := indexRegexp.FindStringSubmatch(ddl)
+		return match[1]
 	}
-	if tableRegexp.MatchString(statement) {
-		match := tableRegexp.FindStringSubmatch(statement)
+	if tableRegexp.MatchString(ddl) {
+		match := tableRegexp.FindStringSubmatch(ddl)
 		return match[1]
 	}
 	return ""
 }
 
-var indexRegexp = regexp.MustCompile(`^CREATE (UNIQUE |NULL_FILTERED )?INDEX ([a-zA-Z0-9_]+) ON ([a-zA-Z0-9_]+)`)
-var tableRegexp = regexp.MustCompile(`^CREATE TABLE ([a-zA-Z0-9_]+)`)
+var indexRegexp = regexp.MustCompile("^\\s*CREATE\\s+(?:UNIQUE\\s+|NULL_FILTERED\\s+)?INDEX\\s+(?:[a-zA-Z0-9_`]+)\\s+ON\\s+`?([a-zA-Z0-9_]+)`?")
+var tableRegexp = regexp.MustCompile("^\\s*CREATE\\s+TABLE\\s+`?([a-zA-Z0-9_]+)`?")
 
 // DumpTables dumps all table records in the database.
 func (d *Dumper) DumpTables(ctx context.Context) error {
