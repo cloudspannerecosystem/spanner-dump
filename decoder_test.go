@@ -17,6 +17,7 @@
 package main
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -88,6 +89,21 @@ func TestDecodeColumn(t *testing.T) {
 			desc:  "float64",
 			value: 1.23,
 			want:  "1.230000",
+		},
+		{
+			desc:  "NaN",
+			value: math.NaN(),
+			want:  "CAST('nan' AS FLOAT64)",
+		},
+		{
+			desc:  "Inf",
+			value: math.Inf(+1),
+			want:  "CAST('inf' AS FLOAT64)",
+		},
+		{
+			desc:  "-Inf",
+			value: math.Inf(-1),
+			want:  "CAST('-inf' AS FLOAT64)",
 		},
 		{
 			desc:  "int64",
