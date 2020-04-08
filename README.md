@@ -7,7 +7,7 @@ Exported databases can be imported to Cloud Spanner with [spanner-cli](https://g
 
 ```sh
 # Export
-$ spanner-dump -p ${PROJECT} -i ${INSTANCE} -d ${DATABASE} [table_name ...] > data.sql
+$ spanner-dump -p ${PROJECT} -i ${INSTANCE} -d ${DATABASE} > data.sql
 
 # Import
 $ spanner-cli -p ${PROJECT} -i ${INSTANCE} -d ${DATABASE} < data.sql
@@ -40,7 +40,7 @@ go get -u github.com/cloudspannerecosystem/spanner-dump
 
 ```
 Usage:
-  spanner-dump [OPTIONS] [table_name ...]
+  spanner-dump [OPTIONS]
 
 Application Options:
   -p, --project=   (required) GCP Project ID.

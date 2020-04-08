@@ -31,7 +31,7 @@ type options struct {
 	ProjectId  string `short:"p" long:"project" description:"(required) GCP Project ID."`
 	InstanceId string `short:"i" long:"instance" description:"(required) Cloud Spanner Instance ID."`
 	DatabaseId string `short:"d" long:"database" description:"(required) Cloud Spanner Database ID."`
-	Tables     string `short:"t" long:"tables" description:"comma-separated table names, e.g. \"table1,table2\" "`
+	Tables     string `long:"tables" description:"comma-separated table names, e.g. \"table1,table2\" "`
 	NoDDL      bool   `long:"no-ddl" description:"No DDL information."`
 	Timestamp  string `long:"timestamp" description:"Timestamp for database snapshot in the RFC 3339 format."`
 	BulkSize   uint   `long:"bulk-size" description:"Bulk size for values in a single INSERT statement."`
@@ -39,8 +39,8 @@ type options struct {
 
 func main() {
 	var opts options
-	_, err := flags.Parse(&opts)
-	if err != nil {
+
+	if _, err := flags.Parse(&opts); err != nil {
 		exitf("Invalid options\n")
 	}
 
