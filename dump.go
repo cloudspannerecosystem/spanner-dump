@@ -138,11 +138,16 @@ func parseTableNameFromDDL(ddl string) string {
 		match := tableRegexp.FindStringSubmatch(ddl)
 		return match[1]
 	}
+	if alterRegexp.MatchString(ddl) {
+		match := alterRegexp.FindStringSubmatch(ddl)
+		return match[1]
+	}
 	return ""
 }
 
 var indexRegexp = regexp.MustCompile("^\\s*CREATE\\s+(?:UNIQUE\\s+|NULL_FILTERED\\s+)?INDEX\\s+(?:[a-zA-Z0-9_`]+)\\s+ON\\s+`?([a-zA-Z0-9_]+)`?")
 var tableRegexp = regexp.MustCompile("^\\s*CREATE\\s+TABLE\\s+`?([a-zA-Z0-9_]+)`?")
+var alterRegexp = regexp.MustCompile("^\\s*ALTER\\s+TABLE\\s+`?([a-zA-Z0-9_]+)`?")
 
 // DumpTables dumps all table records in the database.
 func (d *Dumper) DumpTables(ctx context.Context) error {
