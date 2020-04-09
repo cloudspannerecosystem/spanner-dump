@@ -216,7 +216,7 @@ func nullFloat64ToString(v spanner.NullFloat64) string {
 	case math.IsInf(v.Float64, -1):
 		return "CAST('-inf' AS FLOAT64)"
 	default:
-		return fmt.Sprintf("%f", v.Float64)
+		return strconv.FormatFloat(v.Float64, 'g', -1, 64)
 	}
 }
 

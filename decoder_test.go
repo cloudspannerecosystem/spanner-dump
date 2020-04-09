@@ -88,7 +88,27 @@ func TestDecodeColumn(t *testing.T) {
 		{
 			desc:  "float64",
 			value: 1.23,
-			want:  "1.230000",
+			want:  "1.23",
+		},
+		{
+			desc:  "math.MaxFloat64",
+			value: math.MaxFloat64,
+			want:  "1.7976931348623157e+308",
+		},
+		{
+			desc:  "-math.MaxFloat64",
+			value: -math.MaxFloat64,
+			want:  "-1.7976931348623157e+308",
+		},
+		{
+			desc:  "math.SmallestNonzeroFloat64",
+			value: math.SmallestNonzeroFloat64,
+			want:  "5e-324",
+		},
+		{
+			desc:  "-math.SmallestNonzeroFloat64",
+			value: -math.SmallestNonzeroFloat64,
+			want:  "-5e-324",
 		},
 		{
 			desc:  "NaN",
@@ -192,7 +212,7 @@ func TestDecodeColumn(t *testing.T) {
 		{
 			desc:  "array float64",
 			value: []float64{1.23, 2.45},
-			want:  "[1.230000, 2.450000]",
+			want:  "[1.23, 2.45]",
 		},
 		{
 			desc:  "array int64",
