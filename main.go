@@ -57,8 +57,12 @@ func main() {
 		timestamp = &t
 	}
 
+	var tables []string
+	if opts.Tables != "" {
+		tables = strings.Split(opts.Tables, ",")
+	}
+
 	ctx := context.Background()
-	tables := strings.Split(opts.Tables, ",")
 	dumper, err := NewDumper(ctx, opts.ProjectId, opts.InstanceId, opts.DatabaseId, os.Stdout, timestamp, opts.BulkSize, tables)
 	if err != nil {
 		exitf("Failed to create dumper: %v\n", err)
