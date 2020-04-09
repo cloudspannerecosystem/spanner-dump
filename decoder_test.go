@@ -18,6 +18,7 @@ package main
 
 import (
 	"math"
+	"strconv"
 	"testing"
 	"time"
 
@@ -284,6 +285,26 @@ func TestDecodeColumn(t *testing.T) {
 	}
 }
 
+func TestDecodeColumn_roundtripFloat64(t *testing.T) {
+	for _, tt := range []float64{
+		math.MaxFloat64,
+		-math.MaxFloat64,
+		math.SmallestNonzeroFloat64,
+		+math.SmallestNonzeroFloat64,
+	} {
+		s, err := DecodeColumn(createColumnValue(t, spanner.NullFloat64{Valid: true, Float64: tt}))
+		if err != nil {
+			t.Error(err)
+		}
+		f, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			t.Error(err)
+		}
+		if f != tt {
+			t.Errorf("expected: %g, actual: %g\n", tt, f)
+		}
+	}
+}
 func TestDecodeRow(t *testing.T) {
 	for _, tt := range []struct {
 		desc   string
