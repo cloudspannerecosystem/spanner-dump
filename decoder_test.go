@@ -17,6 +17,8 @@
 package main
 
 import (
+	"math"
+	"strconv"
 	"testing"
 	"time"
 
@@ -87,7 +89,42 @@ func TestDecodeColumn(t *testing.T) {
 		{
 			desc:  "float64",
 			value: 1.23,
-			want:  "1.230000",
+			want:  "1.23",
+		},
+		{
+			desc:  "math.MaxFloat64",
+			value: math.MaxFloat64,
+			want:  "1.7976931348623157e+308",
+		},
+		{
+			desc:  "-math.MaxFloat64",
+			value: -math.MaxFloat64,
+			want:  "-1.7976931348623157e+308",
+		},
+		{
+			desc:  "math.SmallestNonzeroFloat64",
+			value: math.SmallestNonzeroFloat64,
+			want:  "5e-324",
+		},
+		{
+			desc:  "-math.SmallestNonzeroFloat64",
+			value: -math.SmallestNonzeroFloat64,
+			want:  "-5e-324",
+		},
+		{
+			desc:  "NaN",
+			value: math.NaN(),
+			want:  "CAST('nan' AS FLOAT64)",
+		},
+		{
+			desc:  "Inf",
+			value: math.Inf(+1),
+			want:  "CAST('inf' AS FLOAT64)",
+		},
+		{
+			desc:  "-Inf",
+			value: math.Inf(-1),
+			want:  "CAST('-inf' AS FLOAT64)",
 		},
 		{
 			desc:  "int64",
@@ -176,7 +213,7 @@ func TestDecodeColumn(t *testing.T) {
 		{
 			desc:  "array float64",
 			value: []float64{1.23, 2.45},
-			want:  "[1.230000, 2.450000]",
+			want:  "[1.23, 2.45]",
 		},
 		{
 			desc:  "array int64",
@@ -248,6 +285,26 @@ func TestDecodeColumn(t *testing.T) {
 	}
 }
 
+func TestDecodeColumn_roundtripFloat64(t *testing.T) {
+	for _, tt := range []float64{
+		math.MaxFloat64,
+		-math.MaxFloat64,
+		math.SmallestNonzeroFloat64,
+		-math.SmallestNonzeroFloat64,
+	} {
+		s, err := DecodeColumn(createColumnValue(t, spanner.NullFloat64{Valid: true, Float64: tt}))
+		if err != nil {
+			t.Error(err)
+		}
+		f, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			t.Error(err)
+		}
+		if f != tt {
+			t.Errorf("expected: %g, actual: %g\n", tt, f)
+		}
+	}
+}
 func TestDecodeRow(t *testing.T) {
 	for _, tt := range []struct {
 		desc   string

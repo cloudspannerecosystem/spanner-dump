@@ -19,6 +19,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -205,10 +206,17 @@ func nullBytesToString(v []byte) string {
 }
 
 func nullFloat64ToString(v spanner.NullFloat64) string {
-	if v.Valid {
-		return fmt.Sprintf("%f", v.Float64)
-	} else {
+	switch {
+	case !v.Valid:
 		return "NULL"
+	case math.IsNaN(v.Float64):
+		return "CAST('nan' AS FLOAT64)"
+	case math.IsInf(v.Float64, 1):
+		return "CAST('inf' AS FLOAT64)"
+	case math.IsInf(v.Float64, -1):
+		return "CAST('-inf' AS FLOAT64)"
+	default:
+		return strconv.FormatFloat(v.Float64, 'g', -1, 64)
 	}
 }
 
