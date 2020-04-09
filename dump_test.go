@@ -19,7 +19,7 @@ func TestParseTableNameFromDDL(t *testing.T) {
 			want: "table_name_1",
 		},
 		{
-			name: "create table, table include reserved words",
+			name: "create table, table enclosed by backtick (`)",
 			ddl: `CREATE TABLE ` + "`table_name_1`" + ` (
   column1 STRING(32) NOT NULL,
   column2 TIMESTAMP NOT NULL OPTIONS (
@@ -49,12 +49,12 @@ func TestParseTableNameFromDDL(t *testing.T) {
 			want: "table_name_1",
 		},
 		{
-			name: "create index, index name include reserved words",
+			name: "create index, index name enclosed by backtick (`)",
 			ddl:  "CREATE INDEX `order` ON TABLE(`by`)",
 			want: "TABLE",
 		},
 		{
-			name: "create index, table name include reserved words",
+			name: "create index, table name enclosed by backtick (`)",
 			ddl:  "CREATE INDEX `order` ON `TABLE`(`by`)",
 			want: "TABLE",
 		},
@@ -69,7 +69,7 @@ func TestParseTableNameFromDDL(t *testing.T) {
 			want: "t5",
 		},
 		{
-			name: "alter table, table name include reserved words",
+			name: "alter table, table name enclosed by backtick (`)",
 			ddl:  "ALTER TABLE `t5` ADD FOREIGN KEY(T6Id) REFERENCES t6(Id);",
 			want: "t5",
 		},
