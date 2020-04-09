@@ -75,8 +75,7 @@ func TestParseTableNameFromDDL(t *testing.T) {
 		},
 		{
 			name: "alter table, include multiple spaces",
-			ddl: "  ALTER  TABLE" +
-				"\n `t5`   ADD   FOREIGN   KEY(T6Id) REFERENCES t6(Id);",
+			ddl:  "  ALTER  TABLE \r\n `t5`   ADD   FOREIGN   KEY(T6Id) REFERENCES t6(Id);",
 			want: "t5",
 		},
 	}

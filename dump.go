@@ -129,7 +129,6 @@ func (d *Dumper) DumpDDLs(ctx context.Context) error {
 }
 
 func parseTableNameFromDDL(ddl string) string {
-	ddl = strings.ReplaceAll(ddl, "\n", "")
 	if indexRegexp.MatchString(ddl) {
 		match := indexRegexp.FindStringSubmatch(ddl)
 		return match[1]
