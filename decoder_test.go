@@ -290,7 +290,7 @@ func TestDecodeColumn_roundtripFloat64(t *testing.T) {
 		math.MaxFloat64,
 		-math.MaxFloat64,
 		math.SmallestNonzeroFloat64,
-		+math.SmallestNonzeroFloat64,
+		-math.SmallestNonzeroFloat64,
 	} {
 		s, err := DecodeColumn(createColumnValue(t, spanner.NullFloat64{Valid: true, Float64: tt}))
 		if err != nil {
