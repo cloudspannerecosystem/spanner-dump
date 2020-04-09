@@ -154,6 +154,7 @@ func (d *Dumper) DumpTables(ctx context.Context) error {
 	if d.timestamp != nil {
 		txn = txn.WithTimestampBound(spanner.ReadTimestamp(*d.timestamp))
 	}
+	defer txn.Close()
 
 	iter, err := FetchTables(ctx, txn)
 	if err != nil {
