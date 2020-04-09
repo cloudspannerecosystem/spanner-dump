@@ -19,14 +19,16 @@ package main
 import (
 	"context"
 	"fmt"
-	"google.golang.org/api/iterator"
-	"google.golang.org/grpc"
 	"io"
 	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/spanner"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc"
 
 	adminapi "cloud.google.com/go/spanner/admin/database/apiv1"
 	adminpb "google.golang.org/genproto/googleapis/spanner/admin/database/v1"
@@ -42,6 +44,7 @@ type Dumper struct {
 	project   string
 	instance  string
 	database  string
+	tables    map[string]bool
 	out       io.Writer
 	timestamp *time.Time
 	bulkSize  uint
@@ -51,7 +54,7 @@ type Dumper struct {
 }
 
 // NewDumper creates Dumper with specified configurations.
-func NewDumper(ctx context.Context, project, instance, database string, out io.Writer, timestamp *time.Time, bulkSize uint) (*Dumper, error) {
+func NewDumper(ctx context.Context, project, instance, database string, out io.Writer, timestamp *time.Time, bulkSize uint, tables []string) (*Dumper, error) {
 	dbPath := fmt.Sprintf("projects/%s/instances/%s/databases/%s", project, instance, database)
 	client, err := spanner.NewClientWithConfig(ctx, dbPath, spanner.ClientConfig{
 		SessionPoolConfig: spanner.SessionPoolConfig{
@@ -81,16 +84,22 @@ func NewDumper(ctx context.Context, project, instance, database string, out io.W
 		bulkSize = defaultBulkSize
 	}
 
-	return &Dumper{
+	d := &Dumper{
 		project:     project,
 		instance:    instance,
 		database:    database,
+		tables:      map[string]bool{},
 		out:         out,
 		timestamp:   timestamp,
 		bulkSize:    bulkSize,
 		client:      client,
 		adminClient: adminClient,
-	}, nil
+	}
+
+	for _, table := range tables {
+		d.tables[strings.Trim(table, "`")] = true
+	}
+	return d, nil
 }
 
 // Cleanup cleans up hold resources.
@@ -110,11 +119,34 @@ func (d *Dumper) DumpDDLs(ctx context.Context) error {
 	}
 
 	for _, ddl := range resp.Statements {
+		if len(d.tables) > 0 && !d.tables[parseTableNameFromDDL(ddl)] {
+			continue
+		}
 		fmt.Fprintf(d.out, "%s;\n", ddl)
 	}
 
 	return nil
 }
+
+func parseTableNameFromDDL(ddl string) string {
+	if indexRegexp.MatchString(ddl) {
+		match := indexRegexp.FindStringSubmatch(ddl)
+		return match[1]
+	}
+	if tableRegexp.MatchString(ddl) {
+		match := tableRegexp.FindStringSubmatch(ddl)
+		return match[1]
+	}
+	if alterRegexp.MatchString(ddl) {
+		match := alterRegexp.FindStringSubmatch(ddl)
+		return match[1]
+	}
+	return ""
+}
+
+var indexRegexp = regexp.MustCompile("^\\s*CREATE\\s+(?:UNIQUE\\s+|NULL_FILTERED\\s+)?INDEX\\s+(?:[a-zA-Z0-9_`]+)\\s+ON\\s+`?([a-zA-Z0-9_]+)`?")
+var tableRegexp = regexp.MustCompile("^\\s*CREATE\\s+TABLE\\s+`?([a-zA-Z0-9_]+)`?")
+var alterRegexp = regexp.MustCompile("^\\s*ALTER\\s+TABLE\\s+`?([a-zA-Z0-9_]+)`?")
 
 // DumpTables dumps all table records in the database.
 func (d *Dumper) DumpTables(ctx context.Context) error {
@@ -128,7 +160,10 @@ func (d *Dumper) DumpTables(ctx context.Context) error {
 		return err
 	}
 
-	return iter.Do(func (t *Table) error {
+	return iter.Do(func(t *Table) error {
+		if len(d.tables) > 0 && !d.tables[t.Name] {
+			return nil
+		}
 		return d.dumpTable(ctx, t, txn)
 	})
 }

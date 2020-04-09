@@ -46,6 +46,7 @@ Application Options:
   -p, --project=   (required) GCP Project ID.
   -i, --instance=  (required) Cloud Spanner Instance ID.
   -d, --database=  (required) Cloud Spanner Database ID.
+      --tables=    comma-separated table names, e.g. "table1,table2"
       --no-ddl     No DDL information.
       --timestamp= Timestamp for database snapshot in the RFC 3339 format.
       --bulk-size= Bulk size for values in a single INSERT statement.

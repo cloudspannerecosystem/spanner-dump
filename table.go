@@ -26,8 +26,8 @@ import (
 
 // Table represents a Spanner table.
 type Table struct {
-	Name    string
-	Columns []string
+	Name        string
+	Columns     []string
 	ChildTables []*Table
 }
 
@@ -49,7 +49,7 @@ type TableIterator struct {
 }
 
 // Do executes a given func with each table in the database.
-func (i *TableIterator) Do(f func (*Table) error) error {
+func (i *TableIterator) Do(f func(*Table) error) error {
 	for _, t := range i.tables {
 		if err := f(t); err != nil {
 			return err
@@ -126,8 +126,8 @@ func findChildTables(rows []tableRow, parent string) []*Table {
 	for _, row := range rows {
 		if row.parentName == parent {
 			tables = append(tables, &Table{
-				Name: row.name,
-				Columns: row.columns,
+				Name:        row.name,
+				Columns:     row.columns,
 				ChildTables: findChildTables(rows, row.name),
 			})
 		}

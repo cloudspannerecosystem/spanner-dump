@@ -20,15 +20,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jessevdk/go-flags"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/jessevdk/go-flags"
 )
 
 type options struct {
 	ProjectId  string `short:"p" long:"project" description:"(required) GCP Project ID."`
 	InstanceId string `short:"i" long:"instance" description:"(required) Cloud Spanner Instance ID."`
 	DatabaseId string `short:"d" long:"database" description:"(required) Cloud Spanner Database ID."`
+	Tables     string `long:"tables" description:"comma-separated table names, e.g. \"table1,table2\" "`
 	NoDDL      bool   `long:"no-ddl" description:"No DDL information."`
 	Timestamp  string `long:"timestamp" description:"Timestamp for database snapshot in the RFC 3339 format."`
 	BulkSize   uint   `long:"bulk-size" description:"Bulk size for values in a single INSERT statement."`
@@ -36,6 +39,7 @@ type options struct {
 
 func main() {
 	var opts options
+
 	if _, err := flags.Parse(&opts); err != nil {
 		exitf("Invalid options\n")
 	}
@@ -53,8 +57,13 @@ func main() {
 		timestamp = &t
 	}
 
+	var tables []string
+	if opts.Tables != "" {
+		tables = strings.Split(opts.Tables, ",")
+	}
+
 	ctx := context.Background()
-	dumper, err := NewDumper(ctx, opts.ProjectId, opts.InstanceId, opts.DatabaseId, os.Stdout, timestamp, opts.BulkSize)
+	dumper, err := NewDumper(ctx, opts.ProjectId, opts.InstanceId, opts.DatabaseId, os.Stdout, timestamp, opts.BulkSize, tables)
 	if err != nil {
 		exitf("Failed to create dumper: %v\n", err)
 	}
