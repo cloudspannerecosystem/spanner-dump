@@ -69,7 +69,7 @@ func equalStringSlice(a []string, b []string) bool {
 	return true
 }
 
-func mustTimeParse(t *testing.T, timeStr string) time.Time {
+func mustParseTimeString(t *testing.T, timeStr string) time.Time {
 	t.Helper()
 	parsed, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
@@ -162,7 +162,7 @@ func TestDecodeColumn(t *testing.T) {
 		},
 		{
 			desc:  "date",
-			value: civil.DateOf(mustTimeParse(t, "2018-01-23T05:00:00+09:00")),
+			value: civil.DateOf(mustParseTimeString(t, "2018-01-23T05:00:00+09:00")),
 			want:  `DATE "2018-01-23"`,
 		},
 
@@ -241,7 +241,7 @@ func TestDecodeColumn(t *testing.T) {
 		},
 		{
 			desc:  "array date",
-			value: []civil.Date{civil.DateOf(mustTimeParse(t, "2018-01-23T05:00:00+09:00")), civil.DateOf(mustTimeParse(t, "2018-01-24T05:00:00+09:00"))},
+			value: []civil.Date{civil.DateOf(mustParseTimeString(t, "2018-01-23T05:00:00+09:00")), civil.DateOf(mustParseTimeString(t, "2018-01-24T05:00:00+09:00"))},
 			want:  `[DATE "2018-01-23", DATE "2018-01-24"]`,
 		},
 
