@@ -33,7 +33,7 @@ type options struct {
 	DatabaseId string `short:"d" long:"database" description:"(required) Cloud Spanner Database ID."`
 	Tables     string `long:"tables" description:"comma-separated table names, e.g. \"table1,table2\" "`
 	NoDDL      bool   `long:"no-ddl" description:"No DDL information."`
-	NoData     bool   `long:"no-data" description: "No data dump."`
+	NoData      bool   `long:"no-data" description:"Do not dump data."`
 	Timestamp  string `long:"timestamp" description:"Timestamp for database snapshot in the RFC 3339 format."`
 	BulkSize   uint   `long:"bulk-size" description:"Bulk size for values in a single INSERT statement."`
 }
