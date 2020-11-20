@@ -19,7 +19,7 @@ Please feel free to report issues and send pull requests, but note that this app
 
 This tool can be used for the following use cases.
 
-- Export a database in text format for testing purposes
+- Export a database schema and/or data in text format for testing purposes
 - Export a database running on [Cloud Spanner Emulator](https://cloud.google.com/spanner/docs/emulator)
 
 For production databases, you should use an [officially-provided export](https://cloud.google.com/spanner/docs/export),
@@ -48,6 +48,7 @@ Application Options:
   -d, --database=  (required) Cloud Spanner Database ID.
       --tables=    comma-separated table names, e.g. "table1,table2"
       --no-ddl     No DDL information.
+      --no-data    No data dump
       --timestamp= Timestamp for database snapshot in the RFC 3339 format.
       --bulk-size= Bulk size for values in a single INSERT statement.
 
