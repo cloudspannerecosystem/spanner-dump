@@ -48,7 +48,7 @@ Application Options:
   -d, --database=  (required) Cloud Spanner Database ID.
       --tables=    comma-separated table names, e.g. "table1,table2"
       --no-ddl     No DDL information.
-      --no-data    No data dump
+      --no-data    Do not dump data.
       --timestamp= Timestamp for database snapshot in the RFC 3339 format.
       --bulk-size= Bulk size for values in a single INSERT statement.
 
