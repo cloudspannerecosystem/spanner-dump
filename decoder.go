@@ -199,7 +199,7 @@ func nullBytesToString(v []byte) string {
 	sb.WriteString("b") // prefix for bytes literal
 	sb.WriteString(`"`) // quote start
 	for _, b := range v {
-		sb.WriteString(fmt.Sprintf("\\x%x", b))
+		sb.WriteString(fmt.Sprintf("\\x%02x", b))
 	}
 	sb.WriteString(`"`) // quote end
 	return sb.String()
