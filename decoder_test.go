@@ -92,8 +92,8 @@ func TestDecodeColumn(t *testing.T) {
 		},
 		{
 			desc:  "bytes",
-			value: []byte{'a', 'b', 'c'},
-			want:  `b"\x61\x62\x63"`,
+			value: []byte("abc\x01\xa0"),
+			want:  `b"\x61\x62\x63\x01\xa0"`,
 		},
 		{
 			desc:  "float64",
