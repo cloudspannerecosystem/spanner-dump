@@ -22,6 +22,8 @@ import (
 	"strings"
 
 	"cloud.google.com/go/spanner"
+
+	sppb "google.golang.org/genproto/googleapis/spanner/v1"
 )
 
 // Table represents a Spanner table.
@@ -87,7 +89,8 @@ WHERE t.TABLE_CATALOG = '' AND t.TABLE_SCHEMA = ''
 ORDER BY t.TABLE_NAME ASC
 `)
 	var rows []tableRow
-	if err := txn.Query(ctx, stmt).Do(func(r *spanner.Row) error {
+	opts := spanner.QueryOptions{Priority: sppb.RequestOptions_PRIORITY_LOW}
+	if err := txn.QueryWithOptions(ctx, stmt, opts).Do(func(r *spanner.Row) error {
 		var tableName, parentTableName string
 		var columns []string
 		var parentTableNamePtr *string // nullable

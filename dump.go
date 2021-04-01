@@ -32,6 +32,7 @@ import (
 
 	adminapi "cloud.google.com/go/spanner/admin/database/apiv1"
 	adminpb "google.golang.org/genproto/googleapis/spanner/admin/database/v1"
+	sppb "google.golang.org/genproto/googleapis/spanner/v1"
 )
 
 // This is an ad hoc value, but considering mutations limit (20,000),
@@ -171,7 +172,8 @@ func (d *Dumper) DumpTables(ctx context.Context) error {
 
 func (d *Dumper) dumpTable(ctx context.Context, table *Table, txn *spanner.ReadOnlyTransaction) error {
 	stmt := spanner.NewStatement(fmt.Sprintf("SELECT %s FROM `%s`", table.quotedColumnList(), table.Name))
-	iter := txn.Query(ctx, stmt)
+	opts := spanner.QueryOptions{Priority: sppb.RequestOptions_PRIORITY_LOW}
+	iter := txn.QueryWithOptions(ctx, stmt, opts)
 	defer iter.Stop()
 
 	writer := NewBufferedWriter(table, d.out, d.bulkSize)
