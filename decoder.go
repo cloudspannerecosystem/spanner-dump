@@ -134,6 +134,17 @@ func DecodeColumn(column spanner.GenericColumnValue) (string, error) {
 			for _, v := range vs {
 				decoded = append(decoded, nullDateToString(v))
 			}
+		case pb.TypeCode_NUMERIC:
+			var vs []spanner.NullNumeric
+			if err := column.Decode(&vs); err != nil {
+				return "", err
+			}
+			if vs == nil {
+				return "NULL", nil
+			}
+			for _, v := range vs {
+				decoded = append(decoded, nullNumericToString(v))
+			}
 		case pb.TypeCode_JSON:
 			var vs []spanner.NullJSON
 			if err := column.Decode(&vs); err != nil {
@@ -191,6 +202,12 @@ func DecodeColumn(column spanner.GenericColumnValue) (string, error) {
 			return "", err
 		}
 		return nullDateToString(v), nil
+	case pb.TypeCode_NUMERIC:
+		var v spanner.NullNumeric
+		if err := column.Decode(&v); err != nil {
+			return "", err
+		}
+		return nullNumericToString(v), nil
 	case pb.TypeCode_JSON:
 		var v spanner.NullJSON
 		if err := column.Decode(&v); err != nil {
@@ -270,6 +287,14 @@ func nullDateToString(v spanner.NullDate) string {
 	if v.Valid {
 		// Date Literal: https://cloud.google.com/spanner/docs/lexical#date_literals
 		return fmt.Sprintf(`DATE "%s"`, v.Date.String())
+	} else {
+		return "NULL"
+	}
+}
+
+func nullNumericToString(v spanner.NullNumeric) string {
+	if v.Valid {
+		return fmt.Sprintf(`NUMERIC "%s"`, v.String())
 	} else {
 		return "NULL"
 	}

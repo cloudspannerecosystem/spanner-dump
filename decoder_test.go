@@ -18,6 +18,7 @@ package main
 
 import (
 	"math"
+	"math/big"
 	"strconv"
 	"testing"
 	"time"
@@ -166,6 +167,11 @@ func TestDecodeColumn(t *testing.T) {
 			want:  `DATE "2018-01-23"`,
 		},
 		{
+			desc:  "numeric",
+			value: big.NewRat(1234123456789, 1e9),
+			want:  `NUMERIC "1234.123456789"`,
+		},
+		{
 			desc:  "json",
 			value: spanner.NullJSON{Value: jsonMessage{Msg: "foo"}, Valid: true},
 			want:  `JSON "{\"msg\":\"foo\"}"`,
@@ -211,6 +217,11 @@ func TestDecodeColumn(t *testing.T) {
 			desc:  "null date",
 			value: spanner.NullDate{Date: civil.DateOf(time.Unix(0, 0)), Valid: false},
 			want:  "NULL",
+		},
+		{
+			desc:  "null numeric",
+			value: spanner.NullNumeric{Numeric: big.Rat{}, Valid: false},
+			want:  `NULL`,
 		},
 		{
 			desc:  "null json",
@@ -260,6 +271,11 @@ func TestDecodeColumn(t *testing.T) {
 			want:  `[DATE "2018-01-23", DATE "2018-01-24"]`,
 		},
 		{
+			desc:  "array numeric",
+			value: []*big.Rat{big.NewRat(1234123456789, 1e9), big.NewRat(123456789, 1e5)},
+			want:  `[NUMERIC "1234.123456789", NUMERIC "1234.567890000"]`,
+		},
+		{
 			desc:  "array json",
 			value: []spanner.NullJSON{
 				{Value: jsonMessage{Msg: "foo"}, Valid: true},
@@ -302,6 +318,11 @@ func TestDecodeColumn(t *testing.T) {
 		{
 			desc:  "null array date",
 			value: []civil.Date(nil),
+			want:  "NULL",
+		},
+		{
+			desc:  "null array numeric",
+			value: []*big.Rat(nil),
 			want:  "NULL",
 		},
 		{
