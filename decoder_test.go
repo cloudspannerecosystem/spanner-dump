@@ -17,6 +17,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 	"strconv"
@@ -172,12 +173,27 @@ func TestDecodeColumn(t *testing.T) {
 			want:  `NUMERIC "1234.123456789"`,
 		},
 		{
+			desc:  "numeric with minimum value",
+			value: mustBigRatFromString("-99999999999999999999999999999.999999999"),
+			want:  `NUMERIC "-99999999999999999999999999999.999999999"`,
+		},
+		{
+			desc:  "numeric with maximum value",
+			value: mustBigRatFromString("99999999999999999999999999999.999999999"),
+			want:  `NUMERIC "99999999999999999999999999999.999999999"`,
+		},
+		{
 			desc:  "json",
 			value: spanner.NullJSON{Value: jsonMessage{Msg: "foo"}, Valid: true},
 			want:  `JSON "{\"msg\":\"foo\"}"`,
 		},
 		{
-			desc:  "json nested double-quoted string",
+			desc:  "json with null",
+			value: spanner.NullJSON{Value: nil, Valid: true},
+			want:  `JSON "null"`,
+		},
+		{
+			desc:  "json with nested double-quoted string",
 			value: spanner.NullJSON{Value: jsonMessage{Msg: "\"foo\""}, Valid: true},
 			want:  `JSON "{\"msg\":\"\\\"foo\\\"\"}"`,
 		},
@@ -363,6 +379,7 @@ func TestDecodeColumn_roundtripFloat64(t *testing.T) {
 		}
 	}
 }
+
 func TestDecodeRow(t *testing.T) {
 	for _, tt := range []struct {
 		desc   string
@@ -390,4 +407,13 @@ func TestDecodeRow(t *testing.T) {
 			}
 		})
 	}
+}
+
+func mustBigRatFromString(s string) *big.Rat {
+	r := &big.Rat{}
+	r, ok := r.SetString(s)
+	if !ok {
+		panic(fmt.Sprintf("invalid string for big.Rat: %q", s))
+	}
+	return r
 }
