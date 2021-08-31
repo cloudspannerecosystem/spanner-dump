@@ -165,6 +165,16 @@ func TestDecodeColumn(t *testing.T) {
 			value: civil.DateOf(mustParseTimeString(t, "2018-01-23T05:00:00+09:00")),
 			want:  `DATE "2018-01-23"`,
 		},
+		{
+			desc:  "json",
+			value: spanner.NullJSON{Value: jsonMessage{Msg: "foo"}, Valid: true},
+			want:  `JSON "{\"msg\":\"foo\"}"`,
+		},
+		{
+			desc:  "json nested double-quoted string",
+			value: spanner.NullJSON{Value: jsonMessage{Msg: "\"foo\""}, Valid: true},
+			want:  `JSON "{\"msg\":\"\\\"foo\\\"\"}"`,
+		},
 
 		// nullable
 		{
@@ -201,6 +211,11 @@ func TestDecodeColumn(t *testing.T) {
 			desc:  "null date",
 			value: spanner.NullDate{Date: civil.DateOf(time.Unix(0, 0)), Valid: false},
 			want:  "NULL",
+		},
+		{
+			desc:  "null json",
+			value: spanner.NullJSON{Value: jsonMessage{}, Valid: false},
+			want:  `NULL`,
 		},
 
 		// array non-nullable
@@ -244,6 +259,14 @@ func TestDecodeColumn(t *testing.T) {
 			value: []civil.Date{civil.DateOf(mustParseTimeString(t, "2018-01-23T05:00:00+09:00")), civil.DateOf(mustParseTimeString(t, "2018-01-24T05:00:00+09:00"))},
 			want:  `[DATE "2018-01-23", DATE "2018-01-24"]`,
 		},
+		{
+			desc:  "array json",
+			value: []spanner.NullJSON{
+				{Value: jsonMessage{Msg: "foo"}, Valid: true},
+				{Value: jsonMessage{Msg: "bar"}, Valid: true},
+			},
+			want:  `[JSON "{\"msg\":\"foo\"}", JSON "{\"msg\":\"bar\"}"]`,
+		},
 
 		// array nullable
 		{
@@ -279,6 +302,11 @@ func TestDecodeColumn(t *testing.T) {
 		{
 			desc:  "null array date",
 			value: []civil.Date(nil),
+			want:  "NULL",
+		},
+		{
+			desc:  "null array json",
+			value: []spanner.NullJSON(nil),
 			want:  "NULL",
 		},
 	} {
