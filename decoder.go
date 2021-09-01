@@ -28,6 +28,10 @@ import (
 	pb "google.golang.org/genproto/googleapis/spanner/v1"
 )
 
+type jsonMessage struct {
+	Msg string `json:"msg"`
+}
+
 // DecodeRow decodes column values in spanner.Row into strings.
 func DecodeRow(row *spanner.Row) ([]string, error) {
 	columns := make([]string, row.Size())
@@ -130,6 +134,28 @@ func DecodeColumn(column spanner.GenericColumnValue) (string, error) {
 			for _, v := range vs {
 				decoded = append(decoded, nullDateToString(v))
 			}
+		case pb.TypeCode_NUMERIC:
+			var vs []spanner.NullNumeric
+			if err := column.Decode(&vs); err != nil {
+				return "", err
+			}
+			if vs == nil {
+				return "NULL", nil
+			}
+			for _, v := range vs {
+				decoded = append(decoded, nullNumericToString(v))
+			}
+		case pb.TypeCode_JSON:
+			var vs []spanner.NullJSON
+			if err := column.Decode(&vs); err != nil {
+				return "", err
+			}
+			if vs == nil {
+				return "NULL", nil
+			}
+			for _, v := range vs {
+				decoded = append(decoded, nullJSONToString(v))
+			}
 		case pb.TypeCode_STRUCT:
 			return "", errors.New("unexpected error: column has STRUCT data type")
 		}
@@ -176,6 +202,18 @@ func DecodeColumn(column spanner.GenericColumnValue) (string, error) {
 			return "", err
 		}
 		return nullDateToString(v), nil
+	case pb.TypeCode_NUMERIC:
+		var v spanner.NullNumeric
+		if err := column.Decode(&v); err != nil {
+			return "", err
+		}
+		return nullNumericToString(v), nil
+	case pb.TypeCode_JSON:
+		var v spanner.NullJSON
+		if err := column.Decode(&v); err != nil {
+			return "", err
+		}
+		return nullJSONToString(v), nil
 	default:
 		return fmt.Sprintf("%s", column.Value), nil
 	}
@@ -249,6 +287,22 @@ func nullDateToString(v spanner.NullDate) string {
 	if v.Valid {
 		// Date Literal: https://cloud.google.com/spanner/docs/lexical#date_literals
 		return fmt.Sprintf(`DATE "%s"`, v.Date.String())
+	} else {
+		return "NULL"
+	}
+}
+
+func nullNumericToString(v spanner.NullNumeric) string {
+	if v.Valid {
+		return fmt.Sprintf(`NUMERIC "%s"`, v.String())
+	} else {
+		return "NULL"
+	}
+}
+
+func nullJSONToString(v spanner.NullJSON) string {
+	if v.Valid {
+		return fmt.Sprintf(`JSON %s`, strconv.Quote(v.String()))
 	} else {
 		return "NULL"
 	}
