@@ -27,7 +27,7 @@ which should be stable and much faster.
 
 ## Limitations
 
-- This tool does not ensure consistency between database schema (DDL) and data. So you should avoid making changes to the schema while you are running this tool. 
+- This tool does not ensure consistency between database schema (DDL) and data. So you should avoid making changes to the schema while you are running this tool.
 - This tool does not consider data order constrained by [Foreign Keys](https://cloud.google.com/spanner/docs/foreign-keys/overview).
 
 ## Install
@@ -43,9 +43,9 @@ Usage:
   spanner-dump [OPTIONS]
 
 Application Options:
-  -p, --project=   (required) GCP Project ID.
-  -i, --instance=  (required) Cloud Spanner Instance ID.
-  -d, --database=  (required) Cloud Spanner Database ID.
+  -p, --project=   (required) GCP Project ID. [$SPANNER_PROJECT_ID]
+  -i, --instance=  (required) Cloud Spanner Instance ID. [$SPANNER_INSTANCE_ID]
+  -d, --database=  (required) Cloud Spanner Database ID. [$SPANNER_DATABASE_ID]
       --tables=    comma-separated table names, e.g. "table1,table2"
       --no-ddl     No DDL information.
       --no-data    Do not dump data.
