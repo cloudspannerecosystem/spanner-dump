@@ -28,9 +28,9 @@ import (
 )
 
 type options struct {
-	ProjectId  string `short:"p" long:"project" description:"(required) GCP Project ID."`
-	InstanceId string `short:"i" long:"instance" description:"(required) Cloud Spanner Instance ID."`
-	DatabaseId string `short:"d" long:"database" description:"(required) Cloud Spanner Database ID."`
+	ProjectId  string `short:"p" long:"project" env:"SPANNER_PROJECT_ID" description:"(required) GCP Project ID."`
+	InstanceId string `short:"i" long:"instance" env:"SPANNER_INSTANCE_ID" description:"(required) Cloud Spanner Instance ID."`
+	DatabaseId string `short:"d" long:"database" env:"SPANNER_DATABASE_ID" description:"(required) Cloud Spanner Database ID."`
 	Tables     string `long:"tables" description:"comma-separated table names, e.g. \"table1,table2\" "`
 	NoDDL      bool   `long:"no-ddl" description:"No DDL information."`
 	NoData     bool   `long:"no-data" description:"Do not dump data."`
