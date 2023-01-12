@@ -1,4 +1,4 @@
-spanner-dump [![CircleCI](https://circleci.com/gh/cloudspannerecosystem/spanner-dump.svg?style=svg)](https://circleci.com/gh/cloudspannerecosystem/spanner-dump)
+spanner-dump [![run-tests](https://github.com/cloudspannerecosystem/spanner-dump/actions/workflows/run-tests.yaml/badge.svg)](https://github.com/cloudspannerecosystem/spanner-dump/actions/workflows/run-tests.yaml)
 ===
 
 spanner-dump is a command line tool for exporting a Cloud Spanner database in text format.
