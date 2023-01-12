@@ -36,3 +36,5 @@ jobs:
       - run: go test -v ./...
         env: 
           GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud-service-key.json
+          SPANNER_DUMP_INTEGRATION_TEST_PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          SPANNER_DUMP_INTEGRATION_TEST_INSTANCE_ID: ${{ secrets.INSTANCE_ID }}
