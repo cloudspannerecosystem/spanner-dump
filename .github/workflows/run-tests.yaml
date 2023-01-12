@@ -29,9 +29,10 @@ jobs:
         with:
           go-version: '1.14'
       - run: go version
-      - run:
-          name: set credentials
-          command: |
-            echo $GCLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
-            echo 'export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcloud-service-key.json' >> $BASH_ENV
+      - name: set credentials
+        run: echo $GCLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
+        env:
+          GCLOUD_SERVICE_KEY: ${{ secrets.GCLOUD_SERVICE_KEY }}
       - run: go test -v ./...
+        env: 
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud-service-key.json
