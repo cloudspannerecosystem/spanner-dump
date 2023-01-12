@@ -30,11 +30,11 @@ jobs:
           go-version: '1.14'
       - run: go version
       - name: set credentials
-        run: echo $GCLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
+        run: echo $GCLOUD_SERVICE_KEY > $GITHUB_WORKSPACE/gcloud-service-key.json
         env:
           GCLOUD_SERVICE_KEY: ${{ secrets.GCLOUD_SERVICE_KEY }}
       - run: go test -v ./...
         env: 
-          GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud-service-key.json
+          GOOGLE_APPLICATION_CREDENTIALS: $GITHUB_WORKSPACE/gcloud-service-key.json
           SPANNER_DUMP_INTEGRATION_TEST_PROJECT_ID: ${{ secrets.PROJECT_ID }}
           SPANNER_DUMP_INTEGRATION_TEST_INSTANCE_ID: ${{ secrets.INSTANCE_ID }}
