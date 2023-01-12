@@ -36,7 +36,7 @@ jobs:
           go-version: '1.14'
       - run: go version
       - name: setup emulator
-        run: curl -s localhost:9020/v1/projects/myproject/instances --data '{"instanceId": "myinstance"}'
+        run: curl -s 'localhost:9020/v1/projects/myproject/instances' --data '{"instanceId":"myinstance"}'
       - name: run test with emulator
         run: go test -v ./...
         env:
