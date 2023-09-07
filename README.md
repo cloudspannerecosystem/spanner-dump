@@ -33,7 +33,7 @@ which should be stable and much faster.
 ## Install
 
 ```
-go get -u github.com/cloudspannerecosystem/spanner-dump
+go install github.com/cloudspannerecosystem/spanner-dump@latest
 ```
 
 ## Usage
