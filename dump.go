@@ -49,13 +49,14 @@ type Dumper struct {
 	out       io.Writer
 	timestamp *time.Time
 	bulkSize  uint
+	querySql  string
 
 	client      *spanner.Client
 	adminClient *adminapi.DatabaseAdminClient
 }
 
 // NewDumper creates Dumper with specified configurations.
-func NewDumper(ctx context.Context, project, instance, database string, out io.Writer, timestamp *time.Time, bulkSize uint, tables []string) (*Dumper, error) {
+func NewDumper(ctx context.Context, project, instance, database string, out io.Writer, timestamp *time.Time, bulkSize uint, tables []string, querySql string) (*Dumper, error) {
 	dbPath := fmt.Sprintf("projects/%s/instances/%s/databases/%s", project, instance, database)
 	client, err := spanner.NewClientWithConfig(ctx, dbPath, spanner.ClientConfig{
 		SessionPoolConfig: spanner.SessionPoolConfig{
@@ -94,6 +95,7 @@ func NewDumper(ctx context.Context, project, instance, database string, out io.W
 		timestamp:   timestamp,
 		bulkSize:    bulkSize,
 		client:      client,
+		querySql:    querySql,
 		adminClient: adminClient,
 	}
 
@@ -166,12 +168,12 @@ func (d *Dumper) DumpTables(ctx context.Context) error {
 		if len(d.tables) > 0 && !d.tables[t.Name] {
 			return nil
 		}
-		return d.dumpTable(ctx, t, txn)
+		return d.dumpTable(ctx, t, d.querySql, txn)
 	})
 }
 
-func (d *Dumper) dumpTable(ctx context.Context, table *Table, txn *spanner.ReadOnlyTransaction) error {
-	stmt := spanner.NewStatement(fmt.Sprintf("SELECT %s FROM `%s`", table.quotedColumnList(), table.Name))
+func (d *Dumper) dumpTable(ctx context.Context, table *Table, querySql string, txn *spanner.ReadOnlyTransaction) error {
+	stmt := spanner.NewStatement(fmt.Sprintf("SELECT %s FROM `%s` where %s", table.quotedColumnList(), table.Name, querySql))
 	opts := spanner.QueryOptions{Priority: sppb.RequestOptions_PRIORITY_LOW}
 	iter := txn.QueryWithOptions(ctx, stmt, opts)
 	defer iter.Stop()

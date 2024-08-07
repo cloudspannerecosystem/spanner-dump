@@ -36,6 +36,7 @@ type options struct {
 	NoData     bool   `long:"no-data" description:"Do not dump data."`
 	Timestamp  string `long:"timestamp" description:"Timestamp for database snapshot in the RFC 3339 format."`
 	BulkSize   uint   `long:"bulk-size" description:"Bulk size for values in a single INSERT statement."`
+	QuerySql   string `long:"where" description:"Query sql for values in a SElect statement."`
 }
 
 func main() {
@@ -64,7 +65,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	dumper, err := NewDumper(ctx, opts.ProjectId, opts.InstanceId, opts.DatabaseId, os.Stdout, timestamp, opts.BulkSize, tables)
+	dumper, err := NewDumper(ctx, opts.ProjectId, opts.InstanceId, opts.DatabaseId, os.Stdout, timestamp, opts.BulkSize, tables, opts.QuerySql)
 	if err != nil {
 		exitf("Failed to create dumper: %v\n", err)
 	}
