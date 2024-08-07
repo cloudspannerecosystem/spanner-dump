@@ -17,6 +17,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -26,19 +27,21 @@ import (
 //
 // NOTE: BufferedWriter is not goroutine-safe.
 type BufferedWriter struct {
-	out io.Writer
-	table *Table
-	buffer []string
+	out      io.Writer
+	table    *Table
+	buffer   []string
 	bulkSize uint
+	format   string
 }
 
 // NewBufferedWriter creates BufferedWriter with specified configs.
-func NewBufferedWriter(table *Table, out io.Writer, bulkSize uint) *BufferedWriter {
+func NewBufferedWriter(table *Table, out io.Writer, bulkSize uint, format string) *BufferedWriter {
 	return &BufferedWriter{
-		out: out,
-		table: table,
-		buffer: make([]string, 0, bulkSize),
+		out:      out,
+		table:    table,
+		buffer:   make([]string, 0, bulkSize),
 		bulkSize: bulkSize,
+		format:   format,
 	}
 }
 
@@ -46,12 +49,16 @@ func NewBufferedWriter(table *Table, out io.Writer, bulkSize uint) *BufferedWrit
 func (w *BufferedWriter) Write(values []string) {
 	w.buffer = append(w.buffer, fmt.Sprintf("(%s)", strings.Join(values, ", ")))
 	if len(w.buffer) >= int(w.bulkSize) {
-		w.Flush()
+		if w.format == "json" {
+			w.FormatJson()
+		} else if w.format == "sql" {
+			w.FormatSql()
+		}
 	}
 }
 
 // Flush flushes the buffered records.
-func (w *BufferedWriter) Flush() {
+func (w *BufferedWriter) FormatSql() {
 	if len(w.buffer) == 0 {
 		return
 	}
@@ -83,5 +90,37 @@ func (w *BufferedWriter) Flush() {
 	sb.WriteString(";\n")
 
 	fmt.Fprint(w.out, sb.String())
+	w.buffer = w.buffer[:0]
+}
+
+// Flush flushes the buffered records.
+func (w *BufferedWriter) FormatJson() {
+	// Flush flushes the buffered records.
+	if len(w.buffer) == 0 {
+		return
+	}
+
+	columns := w.table.quotedColumnList()
+	columnsList := strings.Split(columns, ", ")
+
+	// For each buffered record, create a map where column names are keys
+	for _, record := range w.buffer {
+		values := strings.Split(record, ", ")
+		rowData := make(map[string]string)
+		for j, column := range columnsList {
+			rowData[string(column)] = values[j]
+		}
+
+		// Convert the map to JSON
+		jsonData, err := json.Marshal(rowData)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		// Write the JSON data to the output, followed by a newline
+		fmt.Fprintln(w.out, string(jsonData))
+	}
+
 	w.buffer = w.buffer[:0]
 }

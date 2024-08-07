@@ -1,19 +1,3 @@
-//
-// Copyright 2020 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-
 package main
 
 import (
@@ -49,13 +33,15 @@ type Dumper struct {
 	out       io.Writer
 	timestamp *time.Time
 	bulkSize  uint
+	querySql  string
+	format    string
 
 	client      *spanner.Client
 	adminClient *adminapi.DatabaseAdminClient
 }
 
 // NewDumper creates Dumper with specified configurations.
-func NewDumper(ctx context.Context, project, instance, database string, out io.Writer, timestamp *time.Time, bulkSize uint, tables []string) (*Dumper, error) {
+func NewDumper(ctx context.Context, project, instance, database string, out io.Writer, timestamp *time.Time, bulkSize uint, tables []string, querySql string, format string) (*Dumper, error) {
 	dbPath := fmt.Sprintf("projects/%s/instances/%s/databases/%s", project, instance, database)
 	client, err := spanner.NewClientWithConfig(ctx, dbPath, spanner.ClientConfig{
 		SessionPoolConfig: spanner.SessionPoolConfig{
@@ -94,6 +80,8 @@ func NewDumper(ctx context.Context, project, instance, database string, out io.W
 		timestamp:   timestamp,
 		bulkSize:    bulkSize,
 		client:      client,
+		querySql:    querySql,
+		format:      format,
 		adminClient: adminClient,
 	}
 
@@ -166,18 +154,29 @@ func (d *Dumper) DumpTables(ctx context.Context) error {
 		if len(d.tables) > 0 && !d.tables[t.Name] {
 			return nil
 		}
-		return d.dumpTable(ctx, t, txn)
+		return d.dumpTable(ctx, t, d.querySql, txn)
 	})
 }
 
-func (d *Dumper) dumpTable(ctx context.Context, table *Table, txn *spanner.ReadOnlyTransaction) error {
-	stmt := spanner.NewStatement(fmt.Sprintf("SELECT %s FROM `%s`", table.quotedColumnList(), table.Name))
+func (d *Dumper) dumpTable(ctx context.Context, table *Table, querySql string, txn *spanner.ReadOnlyTransaction) error {
+	var stmt spanner.Statement
+	if querySql == "" {
+		stmt = spanner.NewStatement(fmt.Sprintf("SELECT %s FROM `%s`", table.quotedColumnList(), table.Name))
+	} else {
+		stmt = spanner.NewStatement(fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", table.quotedColumnList(), table.Name, querySql))
+	}
 	opts := spanner.QueryOptions{Priority: sppb.RequestOptions_PRIORITY_LOW}
 	iter := txn.QueryWithOptions(ctx, stmt, opts)
 	defer iter.Stop()
 
-	writer := NewBufferedWriter(table, d.out, d.bulkSize)
-	defer writer.Flush()
+	writer := NewBufferedWriter(table, d.out, d.bulkSize, d.format)
+	if d.format == "json" {
+		defer writer.FormatJson()
+	} else if d.format == "sql" {
+		defer writer.FormatSql()
+	} else {
+		exitf("Unsupported format: %s\n", d.format)
+	}
 	for {
 		row, err := iter.Next()
 		if err == iterator.Done {
