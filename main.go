@@ -32,6 +32,7 @@ type options struct {
 	InstanceId string `short:"i" long:"instance" env:"SPANNER_INSTANCE_ID" description:"(required) Cloud Spanner Instance ID."`
 	DatabaseId string `short:"d" long:"database" env:"SPANNER_DATABASE_ID" description:"(required) Cloud Spanner Database ID."`
 	Tables     string `long:"tables" description:"comma-separated table names, e.g. \"table1,table2\" "`
+	Query      string `long:"query" description:"Custom SQL query to execute instead of dumping all tables."`
 	NoDDL      bool   `long:"no-ddl" description:"No DDL information."`
 	NoData     bool   `long:"no-data" description:"Do not dump data."`
 	Timestamp  string `long:"timestamp" description:"Timestamp for database snapshot in the RFC 3339 format."`
@@ -63,12 +64,14 @@ func main() {
 		tables = strings.Split(opts.Tables, ",")
 	}
 
+
 	ctx := context.Background()
 	dumper, err := NewDumper(ctx, opts.ProjectId, opts.InstanceId, opts.DatabaseId, os.Stdout, timestamp, opts.BulkSize, tables)
 	if err != nil {
 		exitf("Failed to create dumper: %v\n", err)
 	}
 	defer dumper.Cleanup()
+
 
 	if !opts.NoDDL {
 		if err := dumper.DumpDDLs(ctx); err != nil {
@@ -77,8 +80,14 @@ func main() {
 	}
 
 	if !opts.NoData {
-		if err := dumper.DumpTables(ctx); err != nil {
-			exitf("Failed to dump tables: %v\n", err)
+		if opts.Query != "" {
+			if err := dumper.DumpQuery(ctx, opts.Query); err != nil {
+				exitf("Failed to execute query: %v\n", err)
+			}
+		} else {
+			if err := dumper.DumpTables(ctx); err != nil {
+				exitf("Failed to dump tables: %v\n", err)
+			}
 		}
 	}
 }

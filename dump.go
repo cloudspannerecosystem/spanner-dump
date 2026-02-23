@@ -196,3 +196,57 @@ func (d *Dumper) dumpTable(ctx context.Context, table *Table, txn *spanner.ReadO
 
 	return nil
 }
+
+// DumpQuery executes a custom SQL query and outputs the results as INSERT statements.
+func (d *Dumper) DumpQuery(ctx context.Context, query string) error {
+	txn := d.client.ReadOnlyTransaction()
+	if d.timestamp != nil {
+		txn = txn.WithTimestampBound(spanner.ReadTimestamp(*d.timestamp))
+	}
+	defer txn.Close()
+
+	stmt := spanner.NewStatement(query)
+	opts := spanner.QueryOptions{Priority: sppb.RequestOptions_PRIORITY_LOW}
+	iter := txn.QueryWithOptions(ctx, stmt, opts)
+	defer iter.Stop()
+
+	var columns []string
+	var isFirstRow = true
+	var writer *BufferedWriter
+
+	for {
+		row, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		if isFirstRow {
+			columns = row.ColumnNames()
+			// Create a virtual table for the query result
+			queryTable := &Table{
+				Name:    "query_result",
+				Columns: columns,
+			}
+			writer = NewBufferedWriter(queryTable, d.out, d.bulkSize)
+			isFirstRow = false
+		}
+
+		values, err := DecodeRow(row)
+		if err != nil {
+			return err
+		}
+
+		if len(values) > 0 {
+			writer.Write(values)
+		}
+	}
+
+	if writer != nil {
+		writer.Flush()
+	}
+
+	return nil
+}
